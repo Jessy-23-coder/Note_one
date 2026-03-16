@@ -95,42 +95,7 @@ public class NoteFinalService {
 
 
 
-    // public double notefinal(Etudiant etudiant, Matiere matiere, Resolution resolution,Operateur operateur) {
-    //     double note_final = 0.00;
-    //     List<Note> notesetudant = noteRepository.findByEtudiantIdAndMatiereId(etudiant.getId(), matiere.getId());
-    //     if(notesetudant != null && !notesetudant.isEmpty()) {
-    //         if(notesetudant.size() > 1) {
-                
-    //             double notemax = 0.00;
-    //             double notemin = notemax;
-
-    //             for(Note note : notesetudant) {
-    //                 if(note.getNote().doubleValue() > notemax) {
-    //                     notemax = note.getNote().doubleValue();
-    //                 }
-                    
-    //                 if(note.getNote().doubleValue() < notemin) {
-    //                     notemin = note.getNote().doubleValue();
-    //                 }
-    //             }
-
-    //             double difference = notemax - notemin;
-
-    //             if (difference > 10 && difference < 12) {
-    //                 note_final = operateur.apply((note_final - notemin - notemax) / (notesetudant.size() - 2),);
-    //             }else if(difference > 12 && difference < 15) {
-    //                 note_final = operateur.apply((note_final - notemin - notemax) / (notesetudant.size() - 2), resolution.getDifference().doubleValue() * 0.8);
-    //             }else if(difference > 15) {
-    //                 note_final = operateur.apply((note_final - notemin - notemax) / (notesetudant.size() - 2), resolution.getDifference().doubleValue() * 0.6);
-    //             }
-
-    //         } else {
-    //             note_final = notesetudant.get(0).getNote().doubleValue();
-    //         }
-    //     }
-    //     return note_final;
-    // }
-
+    
 
 
 
@@ -154,22 +119,28 @@ public class NoteFinalService {
         return sommeDifferences;
     }
     
-     public double notefinal(Etudiant etudiant, Matiere matiere) {
+    public double notefinal(Etudiant etudiant, Matiere matiere) {
         double note_final = 0.00;
         
+        // Récupérer toutes les notes de l'étudiant pour cette matière
         List<Note> notesEtudiant = noteRepository.findByEtudiantIdAndMatiereId(etudiant.getId(), matiere.getId());
         
         if (notesEtudiant != null && !notesEtudiant.isEmpty()) {
             
+            // Si une seule note, c'est la note finale
             if (notesEtudiant.size() == 1) {
                 note_final = notesEtudiant.get(0).getNote().doubleValue();
             } 
+            // Si plusieurs notes, appliquer la règle de résolution
             else {
+                // Trouver les paramètres pour cette matière
                 List<Parametre> parametre = parametreRepository.findByMatiere_Id(matiere.getId());
 
+                // Si pas de paramètre défini (null ou vide) : moyenne simple par défaut
                 if (parametre == null || parametre.isEmpty()) {
                     note_final = calculerMoyenne(notesEtudiant);
                 } else {
+                    // Calculer l'écart entre la note max et min
                     double noteMax = notesEtudiant.stream()
                         .mapToDouble(n -> n.getNote().doubleValue())
                         .max()
@@ -182,24 +153,62 @@ public class NoteFinalService {
                     
                         
                     double difference = calculerDifferenceTotaleOptimisee(notesEtudiant.stream().map(n -> n.getNote().doubleValue()).collect(Collectors.toList()));
+
+                    Parametre parametreSelectionne = null;
+
+                    if (parametre.size() > 0) {
+                        // Initialiser avec le premier paramètre
+                        parametreSelectionne = parametre.get(0);
+                        double differenceMinimale = Math.abs(parametreSelectionne.getDifference().doubleValue() - difference);
+                        
+                        // Parcourir tous les paramètres pour trouver celui avec la différence la plus proche
+                        for (int i = 1; i < parametre.size(); i++) {
+                            Parametre paramCourant = parametre.get(i);
+                            double ecartCourant = Math.abs(paramCourant.getDifference().doubleValue() - difference);
+                            
+                            // Si l'écart est plus petit, on garde ce paramètre
+                            if (ecartCourant < differenceMinimale) {
+                                parametreSelectionne = paramCourant;
+                                differenceMinimale = ecartCourant;
+                            }
+                            // Si l'écart est égal, on garde celui avec la plus petite différence
+                            else if (ecartCourant == differenceMinimale) {
+                                if (paramCourant.getDifference().doubleValue() < parametreSelectionne.getDifference().doubleValue()) {
+                                    parametreSelectionne = paramCourant;
+                                    // differenceMinimale reste la même
+                                }
+                            }
+                        }
+                    }
+
+                    // Utilisation du paramètre sélectionné
+                    if (parametreSelectionne != null) {
+                        System.out.println("Paramètre sélectionné avec différence: " + parametreSelectionne.getDifference().doubleValue());
+                        // Faire quelque chose avec le paramètre
+                    } else {
+                        System.out.println("Aucun paramètre disponible");
+                    }
+
+
+                    Resolution resolution = parametreSelectionne.getResolution();
+                    Operateur operateur = parametreSelectionne.getOperateur();
                     
-                    Resolution resolution = parametre.get(0).getResolution();
-                    Operateur operateur = parametre.get(0).getOperateur();
-                    
+                    // Vérifier si l'écart correspond au critère
                     boolean conditionRemplie = false;
                     
                     if (operateur.getOperateur().equals(">")) {
-                        conditionRemplie = difference > parametre.get(0).getDifference().doubleValue();
+                        conditionRemplie = difference > parametreSelectionne.getDifference().doubleValue();
                     } else if (operateur.getOperateur().equals("<")) {
-                        conditionRemplie = difference < parametre.get(0).getDifference().doubleValue();
+                        conditionRemplie = difference < parametreSelectionne.getDifference().doubleValue();
                     } else if (operateur.getOperateur().equals(">=")) {
-                        conditionRemplie = difference >= parametre.get(0).getDifference().doubleValue();
+                        conditionRemplie = difference >= parametreSelectionne.getDifference().doubleValue();
                     } else if (operateur.getOperateur().equals("<=")) {
-                        conditionRemplie = difference <= parametre.get(0).getDifference().doubleValue();
+                        conditionRemplie = difference <= parametreSelectionne.getDifference().doubleValue();
                     } else if (operateur.getOperateur().equals("=")) {
-                        conditionRemplie = Math.abs(difference - parametre.get(0).getDifference().doubleValue()) < 0.001;
+                        conditionRemplie = Math.abs(difference - parametreSelectionne.getDifference().doubleValue()) < 0.001;
                     }
                     
+                    // Appliquer la règle de résolution si la condition est remplie
                     if (conditionRemplie) {
                         switch(resolution.getNom().toLowerCase()) {
                             case "haute":
@@ -215,9 +224,11 @@ public class NoteFinalService {
                                 break;
                                 
                             default:
+                                // Par défaut : moyenne
                                 note_final = calculerMoyenne(notesEtudiant);
                         }
                     } else {
+                        // Condition non remplie : moyenne simple par défaut
                         note_final = calculerMoyenne(notesEtudiant);
                     }
                 }
