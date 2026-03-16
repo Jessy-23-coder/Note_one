@@ -1,0 +1,370 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.util.List, com.example.demo.entity.*" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Notes Finales</title>
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/allCSS.css">
+    <style>
+        .filter-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .filter-title {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            font-weight: 400;
+        }
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+        .filter-control {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95em;
+        }
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .btn-filter {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #da0b0bff 0%, #650016ff 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .btn-filter:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-reset {
+            background: #6c757d;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-reset:hover {
+            background-color: #5a6268;
+        }
+        .stats-section {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        .stat-card .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .stat-card .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        .no-actions {
+            color: #999;
+            font-style: italic;
+        }
+        .result{
+            display: flex;
+            gap : 840px;
+        }
+    </style>
+</head>
+<body>
+    <%@ include file="/assets/include/navbar.jsp" %>
+    <div class="container">
+        <h1>📊 Notes Finales - Consultation</h1>
+        
+        <!-- Section Filtres -->
+        <div class="filter-section">
+            <h2 class="filter-title">🔍 Filtrer les notes finales</h2>
+            
+            <form action="${pageContext.request.contextPath}/notefinal/list" method="get">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="etudiantId">Étudiant</label>
+                        <select id="etudiantId" name="etudiantId" class="filter-control">
+                            <option value="">Tous les étudiants</option>
+                            <%
+                                List<Etudiant> etudiants = (List<Etudiant>) request.getAttribute("etudiants");
+                                Integer selectedEtudiant = (Integer) request.getAttribute("selectedEtudiant");
+                                if (etudiants != null) {
+                                    for (Etudiant e : etudiants) {
+                                        String selected = (selectedEtudiant != null && selectedEtudiant.equals(e.getId())) ? "selected" : "";
+                            %>
+                            <option value="<%= e.getId() %>" <%= selected %>><%= e.getNom() %> <%= e.getPrenom() %></option>
+                            <%
+                                    }
+                                }
+                            %>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="matiereId">Matière</label>
+                        <select id="matiereId" name="matiereId" class="filter-control">
+                            <option value="">Toutes les matières</option>
+                            <%
+                                List<Matiere> matieres = (List<Matiere>) request.getAttribute("matieres");
+                                Integer selectedMatiere = (Integer) request.getAttribute("selectedMatiere");
+                                if (matieres != null) {
+                                    for (Matiere m : matieres) {
+                                        String selected = (selectedMatiere != null && selectedMatiere.equals(m.getId())) ? "selected" : "";
+                            %>
+                            <option value="<%= m.getId() %>" <%= selected %>><%= m.getNom() %></option>
+                            <%
+                                    }
+                                }
+                            %>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="noteMin">Note minimale</label>
+                        <input type="number" id="noteMin" name="noteMin" class="filter-control" 
+                               placeholder="Min" min="0" max="20" step="0.5"
+                               value="<%= request.getAttribute("noteMin") != null ? request.getAttribute("noteMin") : "" %>">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="noteMax">Note maximale</label>
+                        <input type="number" id="noteMax" name="noteMax" class="filter-control" 
+                               placeholder="Max" min="0" max="20" step="0.5"
+                               value="<%= request.getAttribute("noteMax") != null ? request.getAttribute("noteMax") : "" %>">
+                    </div>
+                </div>
+                
+                <div class="filter-actions">
+                <button type="submit" class="btn-filter">Appliquer les filtres</button>
+                <a href="${pageContext.request.contextPath}/notefinal/list" class="btn-reset">Réinitialiser</a>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Statistiques -->
+        <div class="stats-section">
+            <%
+                List<NoteFinal> notesFinales = (List<NoteFinal>) request.getAttribute("notesFinales");
+                int totalNotes = (notesFinales != null) ? notesFinales.size() : 0;
+                double moyenne = 0;
+                double min = 20;
+                double max = 0;
+                
+                if (notesFinales != null && !notesFinales.isEmpty()) {
+                    double sum = 0;
+                    int countNotes = 0;
+                    for (NoteFinal nf : notesFinales) {
+                        if (nf.getNote() == null) {
+                            continue; // ignore null notes in stats
+                        }
+                        double note = nf.getNote().doubleValue();
+                        sum += note;
+                        countNotes++;
+                        if (note < min) min = note;
+                        if (note > max) max = note;
+                    }
+                    if (countNotes > 0) {
+                        moyenne = sum / countNotes;
+                    } else {
+                        min = 0;
+                        max = 0;
+                    }
+                } else {
+                    min = 0;
+                }
+            %>
+            
+            <div class="stat-card">
+                <div class="stat-label">Total des notes</div>
+                <div class="stat-value"><%= totalNotes %></div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label">Moyenne</div>
+                <div class="stat-value"><%= String.format("%.2f", moyenne) %></div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label">Note min</div>
+                <div class="stat-value"><%= String.format("%.2f", min) %></div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label">Note max</div>
+                <div class="stat-value"><%= String.format("%.2f", max) %></div>
+            </div>
+        </div>
+        
+        <!-- Résultats -->
+        <div class="result">
+            <h2 class="title">📋 Résultats <%= (selectedEtudiant != null || selectedMatiere != null) ? "(filtrés)" : "" %></h2>
+            <button type="button" id="calcSelected" class="btn-delete" style="background: linear-gradient(da0b0bff,#da0b0bff 0%,#6f86d6 100%);">Suprimer toutes</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Étudiant</th>
+                    <th>Matière</th>
+                    <th>Note</th>
+                    <th>Appréciation</th>
+                </tr>
+            </thead>
+            <tbody>
+                <%
+                    if (notesFinales != null && !notesFinales.isEmpty()) {
+                        for (NoteFinal nf : notesFinales) {
+                            double note = (nf.getNote() != null) ? nf.getNote().doubleValue() : 0.0;
+                            String appreciation = "";
+                            String appreciationClass = "";
+                            
+                            if (nf.getNote() == null) {
+                                appreciation = "Non calculée";
+                                appreciationClass = "no-actions";
+                            } else if (note >= 16) {
+                                appreciation = "Excellent";
+                                appreciationClass = "text-success";
+                            } else if (note >= 14) {
+                                appreciation = "Très bien";
+                                appreciationClass = "text-success";
+                            } else if (note >= 12) {
+                                appreciation = "Bien";
+                                appreciationClass = "text-primary";
+                            } else if (note >= 10) {
+                                appreciation = "Passable";
+                                appreciationClass = "text-warning";
+                            } else {
+                                appreciation = "Insuffisant";
+                                appreciationClass = "text-danger";
+                            }
+                %>
+                <tr>
+                    <td><%= nf.getId() %></td>
+                    <td><%= nf.getEtudiant() != null ? nf.getEtudiant().getNom() + " " + nf.getEtudiant().getPrenom() : "-" %></td>
+                    <td><%= nf.getMatiere() != null ? nf.getMatiere().getNom() : "-" %></td>
+                    <td><strong><%= nf.getNote() != null ? nf.getNote() : "N/A" %></strong></td>
+                    <td class="<%= appreciationClass %>"><%= appreciation %></td>
+                </tr>
+                <%
+                        }
+                    } else {
+                %>
+                <tr>
+                    <td colspan="6" class="empty-message">Aucune note finale trouvée</td>
+                </tr>
+                <%
+                    }
+                %>
+            </tbody>
+        </table>
+        
+        <!-- Message de notification -->
+        <%
+            String message = (String) request.getAttribute("message");
+            if (message != null) {
+        %>
+        <div class="message <%= request.getAttribute("type") %>">
+            <%= message %>
+        </div>
+        <%
+            }
+        %>
+    </div>
+    <script>
+        // Bouton qui calcule la note finale pour l'étudiant et la matière sélectionnés
+        document.addEventListener('DOMContentLoaded', function() {
+            var btn = document.getElementById('calcSelected');
+            if (btn) {
+                btn.addEventListener('click', function() {
+                    // If this button is the delete-all (has class btn-delete), perform delete
+                    if (btn.classList.contains('btn-delete')) {
+                        if (!confirm('Confirmer la suppression de toutes les notes finales ?')) {
+                            return;
+                        }
+                        var url = '${pageContext.request.contextPath}/notefinal/deleteAll';
+                        window.location.href = url;
+                        return;
+                    }
+
+                    // Otherwise behave as calculate selected
+                    var et = document.getElementById('etudiantId').value;
+                    var mat = document.getElementById('matiereId').value;
+                    if (!et || !mat) {
+                        alert('Veuillez sélectionner un étudiant et une matière avant de calculer.');
+                        return;
+                    }
+                    var url = '${pageContext.request.contextPath}/notefinal/calculate?etudiantId=' + et + '&matiereId=' + mat;
+                    window.location.href = url;
+                });
+            }
+
+            var btnAll = document.getElementById('calcAll');
+            if (btnAll) {
+                btnAll.addEventListener('click', function() {
+                    if (!confirm('Confirmer le calcul de toutes les notes finales pour tous les étudiants et matières ?')) {
+                        return;
+                    }
+                    var url = '${pageContext.request.contextPath}/notefinal/calculateAll';
+                    window.location.href = url;
+                });
+            }
+        });
+    </script>
+</body>
+</html>

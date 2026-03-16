@@ -1,0 +1,44 @@
+interface 
+    form :
+        etudiant 
+        idmatiere
+        resultat :
+            note final
+
+crud
+    etudiant
+    correcteur
+    matiere
+
+
+etudiant
+    id
+    nom
+    prenom
+
+matiere
+    id
+    nom 
+    coeff 
+
+correcteur
+    id 
+    nom 
+    prenom
+
+resolution
+    id 
+    nom
+
+oprateur
+    id 
+    operateur
+
+parametre
+    id 
+    matiere
+    difference
+    resolution
+    operateur
+
+

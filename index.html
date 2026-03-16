@@ -5,8 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Maremad</title>
     <link rel="icon" type="image/png" sizes="50x48" href="D:/different_projects/Mr_Jazz/nouveau_marque/logo_png/logo_Plan de travail 1.png">
+    <style>
+    @keyframes moveGradient {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    .animated-title {
+        font-family: Arial, sans-serif; 
+        text-align: center; 
+        font-size: 80px; /* Taille augmentée pour l'effet */
+        font-weight: bold;
+        
+        /* Dégradé élargi à 200% pour pouvoir le faire bouger */
+        background: linear-gradient(to right, #4211d5, #857ee1, #0b126f, #aba1de);
+        background-size: 200% auto;
+        
+        /* Découpe du texte */
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        
+        /* Lancement de l'animation : 3 secondes, en boucle, fluide */
+        animation: moveGradient 2s linear infinite;
+    }
+    </style>
 </head>
 <body>
-    <h1>Test Git</h1>
+
+<h1 class="animated-title">
+    Maremad
+</h1>
 </body>
 </html>
