@@ -128,7 +128,7 @@
 <body>
     <%@ include file="/assets/include/navbar.jsp" %>
     <div class="container">
-        <h1>ETU 3 6 3 9</h1>
+        <h1>ETU003639</h1>
         
         <!-- Section Filtres -->
         <div class="filter-section">
@@ -229,7 +229,25 @@
                 }
             %>
             
+            <div class="stat-card">
+                <div class="stat-label">Total des notes</div>
+                <div class="stat-value"><%= totalNotes %></div>
+            </div>
             
+            <div class="stat-card">
+                <div class="stat-label">Moyenne</div>
+                <div class="stat-value"><%= String.format("%.2f", moyenne) %></div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label">Note min</div>
+                <div class="stat-value"><%= String.format("%.2f", min) %></div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label">Note max</div>
+                <div class="stat-value"><%= String.format("%.2f", max) %></div>
+            </div>
         </div>
         
         <!-- Résultats -->
